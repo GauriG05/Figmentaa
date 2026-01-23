@@ -23,12 +23,12 @@ export type FigAgentHandle = {
 
 /* ---------------- CONFIG ---------------- */
 
-// 🔴 IMPORTANT: Use PRODUCTION webhook (not webhook-test)
+// Production webhook
 const N8N_WEBHOOK = "http://103.49.131.205:5678/webhook/figmenta-chat";
 
 /* ---------------- HELPERS ---------------- */
 
-// ✅ STABLE SESSION ID
+// Stable session id
 function getSessionId() {
   let id = localStorage.getItem("figmenta_session");
   if (!id) {
@@ -38,7 +38,7 @@ function getSessionId() {
   return id;
 }
 
-// ✅ SEND MESSAGE TO n8n (FIXED JSON HANDLING)
+// ✅ FIXED n8n response handling
 async function sendToN8n(message: string): Promise<string> {
   const res = await fetch(N8N_WEBHOOK, {
     method: "POST",
@@ -56,7 +56,17 @@ async function sendToN8n(message: string): Promise<string> {
 
   const data = await res.json();
 
-  return data.reply ?? "Sorry — I’m having trouble connecting right now.";
+  // n8n returns: [ { output: "text" } ]
+  if (Array.isArray(data) && data.length > 0 && data[0].output) {
+    return data[0].output;
+  }
+
+  // fallback if future webhook returns { reply: "..."}
+  if (data.reply) {
+    return data.reply;
+  }
+
+  return "Sorry — I’m having trouble connecting right now.";
 }
 
 /* ---------------- COMPONENT ---------------- */
@@ -76,26 +86,26 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* ---------- expose open / close ---------- */
+  /* expose open / close */
 
   useImperativeHandle(ref, () => ({
     open: () => setIsOpen(true),
     close: () => setIsOpen(false),
   }));
 
-  /* ---------- auto scroll ---------- */
+  /* auto scroll */
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  /* ---------- focus input ---------- */
+  /* focus input */
 
   useEffect(() => {
     if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
 
-  /* ---------- ESC close ---------- */
+  /* ESC close */
 
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => {
@@ -105,25 +115,22 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
     return () => window.removeEventListener("keydown", onEsc);
   }, []);
 
-  /* ---------- SEND MESSAGE ---------- */
+  /* SEND MESSAGE */
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
     const text = input.trim();
 
-    // push user message immediately
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setIsLoading(true);
 
     try {
       const reply = await sendToN8n(text);
-
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
       console.error("Chat error:", err);
-
       setMessages((prev) => [
         ...prev,
         {
@@ -144,7 +151,7 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
     }
   };
 
-  /* ---------------- UI ---------------- */
+  /* UI */
 
   return (
     <AnimatePresence>
