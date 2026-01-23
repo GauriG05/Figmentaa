@@ -56,13 +56,7 @@ async function sendToN8n(message: string): Promise<string> {
 
   const data = await res.json();
 
-  // 🔥 FIX: Handle n8n array response + future clean API
-  return (
-    data?.[0]?.output ??     // current n8n format: [{ output: "..." }]
-    data?.reply ??          // future format: { reply: "..." }
-    data?.bot_reply ??
-    "Sorry — I’m having trouble connecting right now."
-  );
+  return data.reply ?? "Sorry — I’m having trouble connecting right now.";
 }
 
 /* ---------------- COMPONENT ---------------- */
@@ -126,10 +120,7 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
     try {
       const reply = await sendToN8n(text);
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: reply },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
       console.error("Chat error:", err);
 
