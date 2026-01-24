@@ -25,16 +25,19 @@ export type FigAgentHandle = {
 
 const N8N_WEBHOOK = "http://103.49.131.205:5678/webhook/figmenta-chat";
 
-/* ---------------- HELPERS ---------------- */
+/* ---------------- SESSION (FIXED) ---------------- */
+
+// ✅ NEW SESSION PER PAGE LOAD
+let sessionId: string | null = null;
 
 function getSessionId() {
-  let id = localStorage.getItem("figmenta_session");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("figmenta_session", id);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
   }
-  return id;
+  return sessionId;
 }
+
+/* ---------------- API ---------------- */
 
 async function sendToN8n(message: string): Promise<string> {
   const res = await fetch(N8N_WEBHOOK, {
@@ -101,7 +104,7 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
     }
   }, [isOpen]);
 
-  /* 🔥 GLOBAL KEYBOARD LISTENER (NO CLICK TYPING) */
+  /* 🔥 GLOBAL KEYBOARD LISTENER */
 
   useEffect(() => {
     if (!isOpen) return;
@@ -159,8 +162,6 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
       ]);
     } finally {
       setIsLoading(false);
-
-      // 🔥 FORCE CURSOR BACK AFTER BOT REPLY
       setTimeout(() => {
         inputRef.current?.focus();
       }, 0);
@@ -195,7 +196,7 @@ const FigAgent = forwardRef<FigAgentHandle>((_, ref) => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="pointer-events-auto w-full max-w-[560px] h-full max-h-[640px] flex flex-col bg-[hsl(270_30%_5%)] border border-white/10 rounded-2xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]"
             >
-              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 scrollbar-hide">
                 {messages.map((msg, idx) => (
                   <div
                     key={idx}
