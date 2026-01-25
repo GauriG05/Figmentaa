@@ -1,0 +1,1071 @@
+{
+  "name": "Figmenta",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "figmenta-chat",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "704cc377-afb1-4a23-b440-567bad5c8124",
+      "name": "Incoming Chat",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -3184,
+        160
+      ],
+      "typeVersion": 2.1,
+      "webhookId": "d4ec7d63-07f3-4e1b-81c7-01a904e6ebbe"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.user_messsage }}",
+        "options": {
+          "systemMessage": "=You are Fig1, Figmenta’s AI chat agent.\n\nsession_id : {{ $('Edit Fields1').first().json.session_id }}\n\nUser message:\n{{ $('Edit Fields1').first().json.user_messsage }}\n\nYou are a first-line assistant in a public website chat.\n\nYour job:\nExtract any of these fields if present:\nproject_type, brand_name, industry, budget, timeline, email.\nYou have primarily ask the user for these data fields. they are free to not answer or skip. \n\nCall the Update Data tool whenever you extract or update any field.\nFill tool fields using:\n\nprojectType\nbrandName\nindustry\nbudget\ntimeline\nphase\nemail\nhuman_active\n\nIf a field is not mentioned, return null for it.\n\nAfter calling the tool, reply normally to the user.\nAsk the next missing question in this order:\nproject_type → brand_name → industry → budget → timeline → email.\nWhile replying to the user, make sure you go through the knowledge base of Figmenta company to answer better and related to the company. Tool name is \"Knowledge Base\" and its a vector store. It has all the details regarding Figmenta Company\nExtract any known fields, call Update Data tool with them, then reply normally asking the next missing question.\nRules:\n- Speak naturally in chat replies.\n- Only ask one question at a time.\n- Do not mention JSON or tools to the user.\nEvaluate {{ $now }}\nIf {{ $now }} is between Monday-Friday 9am to 6pm. Atlast ask whether the user want to \"Talk to someone now\" or \"Email later.\"\nIf user wants Talk to someone now->change the human_active to True and reply you have been diverted to the customer representative. Along with this also call the \"Discord Create Thread\" tool to setup a conversation between Figmenta Employee and User.While calling the tool give input and session_id.That tool will return a employees message forward it as it is. you have wait for that message. Never change the value of human_active to true if user hasnt answered this question\nIf user tells to mail later , call the Send Mail tool to send mail.When user chooses \"Email later\", respond ONLY in JSON:\n{\n  \"email\": string,\n  \"subject\": string,\n  \"message\": string\n}\nNo extra text. Respond to the user that their information has been saved and an email has been sent. Dont send the json to the user, send the json to Send Mail tool\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2160,
+        672
+      ],
+      "id": "036d03eb-de3f-46bd-b372-feca876dfc3b",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -2736,
+        992
+      ],
+      "id": "4ede536d-6530-4763-a786-b573fd00a5ac",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "k0O2eqXUgGKGEUaw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2320,
+        1296
+      ],
+      "id": "7ea62ffb-0b44-4fd5-9500-f72230bd60d9",
+      "name": "Embeddings OpenAI1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "k0O2eqXUgGKGEUaw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1040,
+        672
+      ],
+      "id": "655e3e36-3fc2-43bc-8557-a8d4ca8c9aef",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "This is a knowledge base for Figmenta Fashion Brand.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -2368,
+        992
+      ],
+      "id": "93a7b43f-16c8-410a-a8d9-983b10346c72",
+      "name": "Knowledge Base",
+      "notesInFlow": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "IwyMPlQDa85l8i2m",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2448,
+        2144
+      ],
+      "id": "0d95a8b5-a143-4963-99b4-7aa5cbe9e8fa",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "k0O2eqXUgGKGEUaw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "loader": "pdfLoader",
+        "options": {
+          "splitPages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -2016,
+        2144
+      ],
+      "id": "5b19c155-c55a-4d75-8d9b-01b980d38791",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "17Z4Odit9q5gP9BuwSnbWPZuzoU8hGVHm",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent - Figmenta Knowledge Base.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/17Z4Odit9q5gP9BuwSnbWPZuzoU8hGVHm/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2448,
+        1808
+      ],
+      "id": "9aa14b24-b72e-4389-94a5-7b52f38cc376",
+      "name": "Download file",
+      "credentials": {
+        "googleApi": {
+          "id": "aXNuuQzMt2LdXClK",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "operation": "update",
+        "tableId": "conversations",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Incoming Chat').first().json.body.session_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "project_type",
+              "fieldValue": "={{ $fromAI(\"projectType\") }}"
+            },
+            {
+              "fieldId": "brand_name",
+              "fieldValue": "={{ $fromAI(\"brandName\") }}"
+            },
+            {
+              "fieldId": "industry",
+              "fieldValue": "={{ $fromAI(\"industry\") }}"
+            },
+            {
+              "fieldId": "budget",
+              "fieldValue": "={{ $fromAI(\"budget\") }}"
+            },
+            {
+              "fieldId": "timeline",
+              "fieldValue": "={{ $fromAI(\"timeline\") }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{$fromAI(\"email\")}}"
+            },
+            {
+              "fieldId": "updated_at",
+              "fieldValue": "=\"{{ $now }}\""
+            },
+            {
+              "fieldId": "human_active",
+              "fieldValue": "={{$fromAI(\"human_active\")}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        -2016,
+        992
+      ],
+      "id": "4f08658a-65b7-447e-99ec-8fe4c0fcf6df",
+      "name": "Update Data",
+      "notesInFlow": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "IwyMPlQDa85l8i2m",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "conversations",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $json.body.session_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2768,
+        -32
+      ],
+      "id": "34309ec8-f17e-4562-ba97-3fa583902779",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "IwyMPlQDa85l8i2m",
+          "name": "Supabase account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields1').first().json.session_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2528,
+        992
+      ],
+      "id": "ba5315fe-6ad5-40d8-b166-d39d517ffc3c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -2176,
+        1808
+      ],
+      "id": "4fe10f7c-9a7c-418c-89e5-4676a859f13b",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "IwyMPlQDa85l8i2m",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c6e25b9f-cfa6-4cc9-ac11-0f8a26c50e5f",
+              "leftValue": "={{ $('Get a row').item.json.human_active }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2272,
+        320
+      ],
+      "id": "e6047399-b27c-43a3-83dc-325490873f78",
+      "name": "Phase 2 Trigger – Talk Now"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "conversations",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.body.session_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2752,
+        320
+      ],
+      "id": "cb49c5d3-f1c0-41f7-a754-e46f9f293a48",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "IwyMPlQDa85l8i2m",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f87102aa-2926-486a-b722-4cdbbb5c9ca2",
+              "name": "session_id",
+              "value": "={{ $('Incoming Chat').item.json.body.session_id }}",
+              "type": "string"
+            },
+            {
+              "id": "637f2c56-b75e-487b-b823-a0070a155054",
+              "name": "user_messsage",
+              "value": "={{ $('Incoming Chat').item.json.body.user_message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2512,
+        320
+      ],
+      "id": "b5bcf908-34e0-42ee-ab16-7f13a224ff7d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
+        "guildId": {
+          "__rl": true,
+          "value": "1462348911317487760",
+          "mode": "list",
+          "cachedResultName": "Figmenta Test",
+          "cachedResultUrl": "https://discord.com/channels/1462348911317487760"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "=https://discord.com/channels/1462348911317487760/{{ $('Get a row').item.json.thread_id }}",
+          "mode": "url"
+        },
+        "message": "={{ $('Incoming Chat').item.json.body.user_message }}",
+        "responseType": "freeText",
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 5,
+              "resumeUnit": "minutes"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        -1952,
+        320
+      ],
+      "id": "3269b7b7-faa8-4211-a80d-1b79f7a8c946",
+      "name": "Send message and wait for response",
+      "webhookId": "66dbc3bb-b0dd-41e3-8376-084d530c8ed9",
+      "credentials": {
+        "discordBotApi": {
+          "id": "NM9w28JX14ksHRB9",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Create Thread Discord",
+        "workflowId": {
+          "__rl": true,
+          "value": "FzLf7YFY8MR5s9rY",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/FzLf7YFY8MR5s9rY",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $json.session_id }}",
+            "query": "={{ $fromAI(\"input\") }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -1808,
+        992
+      ],
+      "id": "7bedda5b-ee19-4ef5-b1f9-fe7164b369bb",
+      "name": "Discord Create Thread"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "212aa88f-a157-40b2-930c-528099e5da1f",
+              "name": "output",
+              "value": "={{ $json.data.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1632,
+        320
+      ],
+      "id": "a986ceeb-8c90-4665-9d66-89b99dc5def1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "raw",
+              "value": "RnJvbTogb21rYXJwMTEwNUBnbWFpbC5jb20NClRvOiBvbWthcnAxMTA1QGdtYWlsLmNvbQ0KU3ViamVjdDogVGVzdCBNYWlsDQoNCkhlbGxvIGZyb20gY1VSTCE="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        -1568,
+        992
+      ],
+      "id": "88e9eb28-bc96-4f70-929d-a30e4f81c02c",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleApi": {
+          "id": "aXNuuQzMt2LdXClK",
+          "name": "Google Drive account"
+        },
+        "gmailOAuth2": {
+          "id": "m3Z7OcizzYjJGYSt",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 272,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2192,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "27dfcb11-612b-42a0-ad77-3ba108620d4b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 192,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2816,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "fbf2fc0e-9c3a-4a31-98fa-d2c018767c65",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 192,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3232,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "979b1df4-a385-4e36-b470-3453ccd1719b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "**What it does:**  \nCreates and stores a conversation record in Supabase using session_id.\n\n**Why it matters:**  \nMaintains chat state from the first message and enables smooth AI → Human escalation.\n",
+        "height": 176,
+        "width": 384,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2496,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "dc1ea90c-50d8-4e99-8659-6ac98fac7f1d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 208,
+        "width": 1424,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2816,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "9944f02f-f421-4f11-bef3-4b37b30f1055",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1104,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "c2de75e3-cc37-4aa2-836e-226af23da2d5",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 1664,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2816,
+        944
+      ],
+      "typeVersion": 1,
+      "id": "f997ffa1-536f-41fe-9666-0660446fb5f5",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 214,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2384,
+        1248
+      ],
+      "id": "dc5dc928-74b9-43e4-826a-1a6507af28f5",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 208,
+        "width": 688
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2528,
+        1760
+      ],
+      "typeVersion": 1,
+      "id": "0022b310-b6cc-41a3-ac96-ba62d2848fe7",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2080,
+        2096
+      ],
+      "typeVersion": 1,
+      "id": "dabedca3-0f4e-47df-89fd-1486d4c168ed",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 192,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2512,
+        2096
+      ],
+      "typeVersion": 1,
+      "id": "71df27d4-e509-466c-b7bc-936b2c3b3351",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "**Section Purpose (Phase 2 – Human Conversation Handling):**  \nThis section manages the transition from AI to human support. Once a human is active, all user messages are routed to Discord, and AI responses are paused to avoid collision.\n\n**Step-by-step Flow:**  \n• Retrieves the latest conversation record from Supabase using **session_id** to check the current state  \n• Extracts and normalizes required fields so downstream nodes work with clean, predictable data  \n• Evaluates whether **human_active** is set to true, which indicates a human takeover  \n• If human support is active, forwards the user’s message to the correct Discord thread  \n• Waits in real time for a response from a Figmenta team member on Discord  \n• Captures and formats the human reply so it can be sent back to the web chat UI  \n\n**State & Safety Handling:**  \n• Ensures the AI does not respond while a human is engaged  \n• Maintains a single source of truth via Supabase for conversation state  \n• Prevents message duplication or race conditions between AI and human replies  \n\n**Outcome:**  \nProvides a seamless, real-time human chat experience while keeping the web chat, Discord, and database fully synchronized.\n",
+        "height": 448,
+        "width": 672,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "5e99429a-fc78-4773-852b-2b36b1a8e2f0",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "**Section Purpose (AI Agent – Phase 1 Discovery Engine):**  \nThis section powers Fig1, the AI assistant responsible for leading the conversation, answering Figmenta-related questions, and systematically collecting discovery information before any human escalation.\n\n**Core Responsibilities:**  \n• Acts as the first-line assistant for all incoming user messages  \n• Maintains a natural, guided conversation while keeping control of the flow  \n• Proactively asks discovery questions in a fixed order (project type, brand name, industry, budget, timeline)  \n• Allows users to skip or decline questions without breaking the flow  \n\n**Knowledge & Reasoning:**  \n• Uses the Figmenta Knowledge Base (vector search) to answer company, service, and capability questions  \n• Falls back to escalation when a query goes outside the knowledge scope  \n• Relies on OpenAI Chat Model for reasoning and response generation  \n\n**State & Memory Handling:**  \n• Uses session-based memory to preserve short-term context and avoid repetition  \n• Extracts structured data from free-form user replies  \n• Updates Supabase in real time to store collected discovery fields and conversation state  \n\n**Escalation Logic:**  \n• Detects when discovery is complete or when human assistance is required  \n• Triggers Discord thread creation when the user chooses to talk to a human  \n• Hands off control cleanly by updating `human_active` to prevent AI response collisions  \n\n**Outcome:**  \nDelivers a controlled, informative, and human-like discovery experience while ensuring the conversation remains state-driven, scalable, and ready for seamless human takeover.\n",
+        "height": 656,
+        "width": 704,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -768,
+        944
+      ],
+      "typeVersion": 1,
+      "id": "607ed125-6d7f-403e-b209-5fc4a5cc7ee0",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "**Section Purpose (Knowledge Base Ingestion):**  \nThis section builds and maintains Figmenta’s AI knowledge base by converting company documents into searchable vector embeddings.\n\n**How it works:**  \n• Downloads the source PDF files containing Figmenta’s official information  \n• Uses a document loader to split and preprocess the content into readable chunks  \n• Generates vector embeddings using OpenAI Embeddings  \n• Stores the embedded documents in Supabase Vector Store  \n\n**Why this matters:**  \n• Allows the AI Agent to answer questions accurately using verified company data  \n• Prevents hallucinations by grounding responses in real documents  \n• Enables semantic search instead of keyword-based matching  \n\n**Outcome:**  \nCreates a reliable, scalable knowledge base that the AI Agent can query in real time during conversations.\n",
+        "height": 416,
+        "width": 704,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1536,
+        1808
+      ],
+      "typeVersion": 1,
+      "id": "76281fc8-3c37-4410-bcb4-79127f5f292d",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $fromAI(\"email\") }}",
+        "subject": "={{ $fromAI(\"subject\") }}",
+        "emailType": "text",
+        "message": "={{ $fromAI(\"message\") }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1280,
+        992
+      ],
+      "id": "595177aa-d6b2-40bc-8efd-dc321621158b",
+      "name": "Send Mail",
+      "webhookId": "3900e342-c961-4223-b7c8-50e0591c5883",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "m3Z7OcizzYjJGYSt",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Incoming Chat": [
+      {
+        "json": {
+          "headers": {
+            "host": "103.49.131.205:5678",
+            "connection": "keep-alive",
+            "content-length": "73",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+            "dnt": "1",
+            "content-type": "application/json",
+            "accept": "*/*",
+            "origin": "http://localhost:8080",
+            "referer": "http://localhost:8080/",
+            "accept-encoding": "gzip, deflate",
+            "accept-language": "en-US,en;q=0.9,hi;q=0.8"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "session_id": "805e826c-307c-4569-8551-eb249813283c",
+            "user_message": "Hi"
+          },
+          "webhookUrl": "http://103.49.131.205:5678/webhook/figmenta-chat",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Incoming Chat": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Knowledge Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Data": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phase 2 Trigger – Talk Now": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Phase 2 Trigger – Talk Now",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord Create Thread": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e64618bf-8c3b-43a0-aef5-1172d11637dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff6fcd6c3dbefd903b65e819bfa8486fac754fac4a598059156f9660ee094a92"
+  },
+  "id": "DiwaNUy_nrWA5xIEBdASL",
+  "tags": []
+}

@@ -1,0 +1,306 @@
+{
+  "name": "Figmenta Sub workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "session_id"
+            },
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        448,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/v10/channels/1464597430572945631/threads",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $json.session_id }}"
+            },
+            {
+              "name": "type",
+              "value": "11"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        672,
+        144
+      ],
+      "id": "71bb8a89-313a-43f9-a91b-3c1491f68d29",
+      "name": "HTTP Request",
+      "credentials": {
+        "discordBotApi": {
+          "id": "NM9w28JX14ksHRB9",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7223bb78-16be-4f0d-b8c1-71979d14bcba",
+              "name": "thread_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "43ec38d5-0a73-4dff-a347-a89cc7114950",
+              "name": "thread_url",
+              "value": "=https://discord.com/channels/{{ $json.guild_id }}/{{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        144
+      ],
+      "id": "97a04a2a-cb69-4e92-a716-76a0e2712a45",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "conversations",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.session_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "thread_id",
+              "fieldValue": "={{ $json.thread_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -64
+      ],
+      "id": "265e409d-e12b-4e79-992b-995ba0371f98",
+      "name": "Update a row",
+      "executeOnce": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "IwyMPlQDa85l8i2m",
+          "name": "Supabase account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 176,
+        "width": 192,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1104,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "c5f19996-8bc8-4f9f-98e0-aa3933de5da3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 208,
+        "width": 624,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "887b2541-1b71-48d7-ba5c-91965e493577",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 224,
+        "width": 224,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1104,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "68dfbbbb-4509-444a-8e70-a19265f3aa02",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
+        "guildId": {
+          "__rl": true,
+          "value": "1462348911317487760",
+          "mode": "list",
+          "cachedResultName": "Figmenta Test",
+          "cachedResultUrl": "https://discord.com/channels/1462348911317487760"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.thread_url }}",
+          "mode": "url"
+        },
+        "message": "={{ $('When Executed by Another Workflow').item.json.query }}",
+        "responseType": "freeText",
+        "options": {
+          "messageButtonLabel": "Reply Here",
+          "responseFormTitle": "Query",
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 5,
+              "resumeUnit": "minutes"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        368
+      ],
+      "id": "e1de197a-0823-4e59-b2d2-23fcfccfb76e",
+      "name": "Send message & wait for response",
+      "webhookId": "4bbf9994-b805-4dfc-b4b4-9c0f72951442",
+      "credentials": {
+        "discordBotApi": {
+          "id": "NM9w28JX14ksHRB9",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "**Purpose:**  \nHandles AI → Human escalation by bridging the web chat with Figmenta’s internal Discord team.\n\n**How it works:**  \n• Triggered by the main workflow when the user chooses “Talk to someone now”  \n• Receives **session_id** and the user’s latest query  \n• Creates a dedicated Discord thread named after the session  \n• Saves the Discord **thread_id** in Supabase to lock the conversation state  \n• Forwards the user’s message to the Discord thread  \n• Waits for a human response and captures it in real time  \n\n**Why this matters:**  \nEnsures seamless human takeover, prevents AI response collisions, and keeps the web chat, Discord, and database perfectly synchronized.\n",
+        "height": 352,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1536,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "336fd8f6-a9e9-40da-b810-a518ee96af66",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "session_id": "call_Kz8hvIsNR9MsrwMuG1S9WgZ6",
+          "query": "Client wants to talk now about ecommerce website project for brand bolati pustake in publishing industry with a budget of 500$ to be completed before year ends. Email: omkarp1105@gmail.com"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message & wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "48dc613e-b766-44e1-b10a-61c3bbabc2d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff6fcd6c3dbefd903b65e819bfa8486fac754fac4a598059156f9660ee094a92"
+  },
+  "id": "FzLf7YFY8MR5s9rY",
+  "tags": []
+}
