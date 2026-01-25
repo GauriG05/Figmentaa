@@ -55,16 +55,46 @@ async function sendToN8n(message: string): Promise<string> {
 
   const data = await res.json();
 
-  if (Array.isArray(data) && data[0]?.output) {
-    return data[0].output;
+  console.log("🔹 Raw n8n response:", data);
+
+  // 🔥 UNIVERSAL RESPONSE PARSER
+
+  // Case 1: Array response
+  if (Array.isArray(data)) {
+    const first = data[0];
+
+    if (first?.output) return first.output;
+    if (first?.reply) return first.reply;
+    if (first?.text) return first.text;
+    if (first?.json?.output) return first.json.output;
+    if (first?.json?.reply) return first.json.reply;
+    if (first?.json?.text) return first.json.text;
+
+    return JSON.stringify(first);
   }
 
-  if (data.reply) {
-    return data.reply;
+  // Case 2: Object response
+  if (typeof data === "object" && data !== null) {
+    if (data.output) return data.output;
+    if (data.reply) return data.reply;
+    if (data.text) return data.text;
+    if (data.message) return data.message;
+
+    if (data.data?.text) return data.data.text;
+    if (data.data?.reply) return data.data.reply;
+    if (data.data?.output) return data.data.output;
+
+    return JSON.stringify(data);
   }
 
-  return "Sorry — I’m having trouble connecting right now.";
+  // Case 3: Plain string
+  if (typeof data === "string") {
+    return data;
+  }
+
+  return "⚠️ Reply received but format not recognized.";
 }
+
 
 /* ---------------- COMPONENT ---------------- */
 
