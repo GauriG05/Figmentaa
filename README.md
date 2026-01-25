@@ -1,73 +1,119 @@
-# Welcome to your Lovable project
+# Figmenta Intelligent Agent Hub  
+### Web Chat + Discord Human Escalation System
 
-## Project info
+This project is a production-style conversational AI system that demonstrates a complete **AI-driven discovery flow with real-time human takeover via Discord**, powered by n8n, Supabase, OpenAI, and a lightweight web chat UI.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🎯 Project Objective
 
-## How can I edit this code?
+Build a professional-grade conversational system where:
+- Users interact with an AI agent (**Fig1**) via a public web chat
+- The AI conducts structured discovery using Figmenta’s knowledge base
+- Conversations seamlessly escalate to a **human team member on Discord**
+- AI pauses automatically during human takeover to prevent collisions
 
-There are several ways of editing your application.
+## 🧠 System Overview
 
-**Use Lovable**
+### Phase 1 – AI Discovery Engine (Web Chat)
+- AI agent identifies as **Fig1**
+- Leads the conversation proactively
+- Collects the following (users may skip):
+  1. Project Type  
+  2. Brand Name  
+  3. Industry  
+  4. Budget  
+  5. Timeline  
+- Answers Figmenta-related questions using a **PDF-based knowledge base**
+- Stores structured data in **Supabase**
+- Maintains session-based memory
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Phase 2 – Human Escalation (Discord)
+- Email collected after discovery
+- Time-aware logic (CET):
+  - **Mon–Fri, 9AM–6PM** → option to talk to a human now
+  - Outside hours → details forwarded for follow-up
+- Dedicated **Discord thread** created per session
+- Human replies sync back to the web chat in real time
+- AI responses are paused while `human_active = true`
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧩 Architecture & Tech Stack
 
-**Use your preferred IDE**
+**Frontend**
+- HTML / CSS / JavaScript
+- Chat popup UI
+- Webhook-based communication with n8n
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+**Automation & Logic**
+- n8n (Main workflow + Sub-workflow)
+- State-driven execution
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+**AI**
+- OpenAI Chat Model (via LangChain Agent)
+- Vector-based semantic search
 
-Follow these steps:
+**Database**
+- Supabase  
+- Tables:
+  - `conversations`
+  - `documents` (vector embeddings)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+**Human Bridge**
+- Discord Bot
+- Thread-based conversation handling
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 📂 Repository Structure
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```text
+figmenta-agent-hub/
+│
+├── frontend/
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
+│
+├── n8n/
+│   ├── Figmenta.json
+│   └── Figmenta Sub workflow.json
+│
+├── assets/
+│   └── screenshots/
+│
+└── README.md
 ```
 
-**Edit a file directly in GitHub**
+## 🔄 Workflow Breakdown
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 1️⃣ Session Initialization
+- Incoming chat webhook receives `session_id`
+- New conversation row created in Supabase
 
-**Use GitHub Codespaces**
+### 2️⃣ AI Discovery Logic
+- AI extracts structured fields from free-text input
+- Updates Supabase in real time
+- Asks next missing question in fixed order
+- Uses vector knowledge base for company-related queries
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 3️⃣ Escalation Decision
+- Checks CET time window
+- Asks user to choose:
+  - **Talk to someone now**
+  - **Email later**
 
-## What technologies are used for this project?
+### 4️⃣ Discord Human Takeover
+- Sub-workflow creates Discord thread using `session_id`
+- Thread ID saved in Supabase
+- User message forwarded to Discord
+- Human reply captured and sent back to web chat
+- AI remains paused during takeover
 
-This project is built with:
+## 🗄️ Knowledge Base
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Figmenta company information stored as PDFs
+- Documents converted into vector embeddings
+- Stored in Supabase Vector Store
+- Enables accurate, grounded responses
 
-## How can I deploy this project?
+## 👤 Author
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Gauri Tanaji Gaikwad**  
+AI & Data Science Engineering Student  
+Focused on automation-first AI systems and workflow orchestration.
