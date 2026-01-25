@@ -23,7 +23,7 @@ export type FigAgentHandle = {
 
 /* ---------------- CONFIG ---------------- */
 
-const N8N_WEBHOOK = "http://103.49.131.205:5678/webhook/figmenta-chat";
+const N8N_WEBHOOK = import.meta.env.VITE_N8N_WEBHOOK;
 
 /* ---------------- SESSION (FIXED) ---------------- */
 
